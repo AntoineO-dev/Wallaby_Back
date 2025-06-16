@@ -12,6 +12,18 @@ function getAllReservations() {
     });
 }
 
+function getAllReservationsByStatus(reservationStatus) {
+    return new Promise((resolve, reject) => {
+        pool.query('SELECT * FROM reservations WHERE status = ?', [reservationStatus], (error, results) => {
+            if (error) {
+                console.error('Error fetching reservations by status:', error);
+                return reject(error);
+            }
+            resolve(results);
+        });
+    });
+    }
+
 function getReservationById(reservationId) {
     return new Promise((resolve, reject) => {
         pool.query('SELECT * FROM reservations WHERE id = ?', [reservationId], (error, results) => {
@@ -29,5 +41,6 @@ function getReservationById(reservationId) {
 
 module.exports = {
     getAllReservations,
-    getReservationById
+    getReservationById,
+    getAllReservationsByStatus
 };

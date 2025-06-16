@@ -10,6 +10,17 @@ async function getAllReservations(req, res) {
     }
 }
 
+async function getAllReservationsByStatus(req, res) {
+    const reservationStatus = req.params.reservation_status;
+    try {
+        const reservations = await reservationsService.getAllReservationsByStatus(reservationStatus);
+        res.status(200).json(reservations);
+    } catch (error) {
+        console.error('Error fetching reservations by status:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
 async function getReservationById(req, res) {
     const reservationId = req.params.id;
     try {
@@ -27,5 +38,6 @@ async function getReservationById(req, res) {
 
 module.exports = {
     getAllReservations,
-    getReservationById
+    getReservationById,
+    getAllReservationsByStatus
 };

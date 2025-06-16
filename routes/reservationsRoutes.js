@@ -2,8 +2,11 @@ const express = require('express');
 const router = express.Router();
 const reservationsController = require('../controllers/reservationsController');
 
-// Route pour récupérer toutes les réservations
+// /reservations
 router.get('/', reservationsController.getAllReservations);
+
+// /reservations/status/:reservation_status
+router.get('/status/:reservation_status', reservationsController.getAllReservations);
 
 
 
