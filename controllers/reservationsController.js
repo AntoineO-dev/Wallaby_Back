@@ -1,4 +1,4 @@
-reservationsService = require('../services/reservationsService');
+const reservationsService = require('../services/reservationsService');
 
 async function getAllReservations(req, res) {
     try {
