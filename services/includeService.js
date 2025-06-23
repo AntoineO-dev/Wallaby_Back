@@ -1,4 +1,4 @@
-const pool = require('/..config/bdd')
+const pool = require('../config/bdd')
 
 function getAllInclude() {
     return new Promise((resolve, reject) => {

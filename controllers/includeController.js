@@ -1,4 +1,4 @@
-const inclureService = require('../services/includeService');
+const includeService = require('../services/includeService');
 
 async function getAllInclude(req, res) {
     try {
