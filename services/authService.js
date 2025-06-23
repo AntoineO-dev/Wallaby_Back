@@ -2,31 +2,26 @@ const pool = require('../config/bdd');
 
 function login(email, password) {
     return new Promise((resolve, reject) => {
-        pool.query('SELECT * FROM users WHERE email = $1 AND password = $2', [email, password], (error, results) => {
+        pool.query('SELECT * FROM users WHERE email = ?', [email], (error, results) => {
             if (error) {
-                console.error('Error during login:', error);
-                return reject(new Error('Login failed'));
+                return reject(new Error('Database error'));
             }
-            if (results.rows.length === 0) {
+            if (results.length === 0) {
                 return reject(new Error('Invalid email or password'));
             }
-            const user = results.rows[0];
-            // Here you would typically generate a JWT token
-            resolve({ token: 'dummy-token', user });
+            resolve(results[0]);
         });
     });
 }
 
-function register(email, password) {
+
+function register(userData) {
     return new Promise((resolve, reject) => {
-        pool.query('INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *', [email, password], (error, results) => {
+        pool.query('INSERT INTO users (email, password, last_name, first_name, role) VALUES (?, ?, ?, ?, ?) RETURNING *', [userData.email, userData.password, userData.last_name, userData.first_name, userData.role], (error, results) => {
             if (error) {
-                console.error('Error during registration:', error);
-                return reject(new Error('Registration failed'));
+                return reject(new Error('Database error'));
             }
-            const user = results.rows[0];
-            // Here you would typically generate a JWT token
-            resolve({ token: 'dummy-token', user });
+            resolve(results[0]);
         });
     });
 }
