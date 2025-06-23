@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const roomsController = require('../controllers/roomsController');
+const authController = require('../controllers/authController');
 
 // /rooms
 router.get('/', roomsController.getAllRooms);
@@ -23,6 +24,13 @@ router.get('/capacity/:capacity', roomsController.getRoomsByCapacity);
 // /rooms/:id
 router.get('/:id', roomsController.getRoomById);
 
+// POST /rooms
+router.post('/', authController.verifyToken, (req, res) => {roomsController.createRoom(req, res)});
 
+// PATCH /rooms/:id
+router.patch('/:id', authController.verifyToken, (req, res) => {roomsController.updateRoom(req, res)});
+
+// DELETE /rooms/:id
+router.delete('/:id', authController.verifyToken, (req, res) => {roomsController.deleteRoom(req, res)});
 
 module.exports = router;

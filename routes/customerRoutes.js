@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const customerController = require('../controllers/customerController');
+const authController = require('../controllers/authController');
 
 // /customers
 router.get('/', customerController.getAllCustomers);
@@ -16,5 +17,14 @@ router.get('/reservations/rooms/:room_name', customerController.getCustomersByRo
 
 // /customers/:id
 router.get('/:id', customerController.getCustomerById);
+
+// POST /customers
+router.post('/', authController.verifyToken, (req, res) => {customerController.createCustomer(req, res)});
+
+// /PATCH /customers/:id
+router.patch('/:id', authController.verifyToken, (req, res) => {customerController.updateCustomer(req, res)});
+
+// DELETE /customers/:id
+router.delete('/:id', authController.verifyToken, (req, res) => {customerController.deleteCustomer(req, res)});
 
 module.exports = router;

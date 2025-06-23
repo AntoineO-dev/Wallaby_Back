@@ -79,6 +79,48 @@ async function getReservationById(req, res) {
     }
 }
 
+async function createReservation(req, res) {
+    const newReservation = req.body;
+    try {
+        const reservationId = await reservationsService.createReservation(newReservation);
+        res.status(201).json({ id: reservationId });
+    } catch (error) {
+        console.error('Error creating reservation:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
+async function updateReservation(req, res) {
+    const reservationId = req.params.id;
+    const updatedData = req.body;
+    try {
+        const success = await reservationsService.updateReservation(reservationId, updatedData);
+        if (success) {
+            res.status(200).json({ message: 'Reservation updated successfully' });
+        } else {
+            res.status(404).json({ message: 'Reservation not found' });
+        }
+    } catch (error) {
+        console.error('Error updating reservation:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
+async function deleteReservation(req, res) {
+    const reservationId = req.params.id;
+    try {
+        const success = await reservationsService.deleteReservation(reservationId);
+        if (success) {
+            res.status(200).json({ message: 'Reservation deleted successfully' });
+        } else {
+            res.status(404).json({ message: 'Reservation not found' });
+        }
+    } catch (error) {
+        console.error('Error deleting reservation:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
 module.exports = {
     getAllReservations,
     getReservationById,
@@ -86,5 +128,8 @@ module.exports = {
     getAverageCost,
     getAboveTotalCost,
     getBelowTotalCost,
-    getReservationsByRoomName
+    getReservationsByRoomName,
+    createReservation,
+    updateReservation,
+    deleteReservation
 };

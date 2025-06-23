@@ -92,6 +92,48 @@ async function getRoomById(req, res) {
     }
 }
 
+async function createRoom(req, res) {
+    try {
+        const newRoom = req.body;
+        const createdRoom = await roomsService.createRoom(newRoom);
+        res.status(201).json(createdRoom);
+    } catch (error) {
+        console.error('Error creating room:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
+async function updateRoom(req, res) {
+    try {
+        const roomId = req.params.id;
+        const updatedRoomData = req.body;
+        const updatedRoom = await roomsService.updateRoom(roomId, updatedRoomData);
+        if (updatedRoom) {
+            res.status(200).json(updatedRoom);
+        } else {
+            res.status(404).json({ message: 'Room not found' });
+        }
+    } catch (error) {
+        console.error('Error updating room:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
+async function deleteRoom(req, res) {
+    try {
+        const roomId = req.params.id;
+        const deleted = await roomsService.deleteRoom(roomId);
+        if (deleted) {
+            res.status(204).send(); // No content
+        } else {
+            res.status(404).json({ message: 'Room not found' });
+        }
+    } catch (error) {
+        console.error('Error deleting room:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
 module.exports = {
     getAllRooms,
     getRoomById,
@@ -99,5 +141,8 @@ module.exports = {
     getRoomsAbovePrice,
     getRoomsBelowPrice,
     getRoomByName,
-    getRoomsByCapacity
+    getRoomsByCapacity,
+    createRoom,
+    updateRoom,
+    deleteRoom
 };

@@ -70,10 +70,53 @@ async function getCustomerById(req, res) {
     }
 }
 
+async function createCustomer(req, res) {
+    try {
+        const newCustomer = await customerService.createCustomer(req.body);
+        res.status(201).json(newCustomer);
+    } catch (error) {
+        console.error('Error creating customer:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
+async function updateCustomer(req, res) {
+    const customerId = req.params.id;
+    try {
+        const updatedCustomer = await customerService.updateCustomer(customerId, req.body);
+        if (updatedCustomer) {
+            res.status(200).json(updatedCustomer);
+        } else {
+            res.status(404).json({ message: 'Customer not found' });
+        }
+    } catch (error) {
+        console.error('Error updating customer:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
+async function deleteCustomer(req, res) {
+    const customerId = req.params.id;
+    try {
+        const result = await customerService.deleteCustomer(customerId);
+        if (result.affectedRows > 0) {
+            res.status(204).send();
+        } else {
+            res.status(404).json({ message: 'Customer not found' });
+        }
+    } catch (error) {
+        console.error('Error deleting customer:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
 module.exports = {
     getAllCustomers,
     getCustomerById,
     getCustomersByRegistrationDate,
     getCustomersByTotalCost,
-    getCustomersByRoomName
+    getCustomersByRoomName,
+    createCustomer,
+    updateCustomer,
+    deleteCustomer
 };

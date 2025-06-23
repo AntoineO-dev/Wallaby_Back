@@ -64,10 +64,51 @@ function getCustomerById(customerId) {
     });
 }
 
+function createCustomer(customerData) {
+    return new Promise((resolve, reject) => {
+        const { first_name, last_name, email, phone, registration_date } = customerData;
+        pool.query('INSERT INTO customers (first_name, last_name, email, phone, registration_date) VALUES (?, ?, ?, ?, ?)', [first_name, last_name, email, phone, registration_date], (error, results) => {
+            if (error) {
+                console.error('Error creating customer:', error);
+                return reject(error);
+            }
+            resolve(results.insertId);
+        });
+    });
+}
+
+function updateCustomer(customerId, customerData) {
+    return new Promise((resolve, reject) => {
+        const { first_name, last_name, email, phone, registration_date } = customerData;
+        pool.query('UPDATE customers SET first_name = ?, last_name = ?, email = ?, phone = ?, registration_date = ? WHERE id_customer = ?', [first_name, last_name, email, phone, registration_date, customerId], (error, results) => {
+            if (error) {
+                console.error('Error updating customer:', error);
+                return reject(error);
+            }
+            resolve(results.affectedRows > 0);
+        });
+    });
+}
+
+function deleteCustomer(customerId) {
+    return new Promise((resolve, reject) => {
+        pool.query('DELETE FROM customers WHERE id_customer = ?', [customerId], (error, results) => {
+            if (error) {
+                console.error('Error deleting customer:', error);
+                return reject(error);
+            }
+            resolve(results);
+        });
+    });
+}
+
 module.exports = {
     getAllCustomers,
     getCustomerById,
     getCustomersByRegistrationDate,
     getCustomersByTotalCost,
-    getCustomersByRoomName
+    getCustomersByRoomName,
+    createCustomer,
+    updateCustomer,
+    deleteCustomer
 };

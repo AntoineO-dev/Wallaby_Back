@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const reservationsController = require('../controllers/reservationsController');
+const authController = require('../controllers/authController');
 
 // /reservations
 router.get('/', reservationsController.getAllReservations);
@@ -19,6 +20,15 @@ router.get('/below/total_cost/:total_cost', reservationsController.getAboveTotal
 
 // /reservations/rooms/:room_name
 router.get('/rooms/:room_name', reservationsController.getAboveTotalCost);
+
+// /POST /reservations
+router.post('/', authController.verifyToken, (req, res) => {reservationsController.createReservation(req, res)});
+
+// /PATCH /reservations/:id
+router.patch('/:id', authController.verifyToken, (req, res) => {reservationsController.updateReservation(req, res)});
+
+// DELETE /reservations/:id
+router.delete('/:id', authController.verifyToken, (req, res) => {reservationsController.deleteReservation(req, res)});
 
 
 

@@ -90,6 +90,49 @@ function getReservationById(reservationId) {
     });
 }
 
+function createReservation(reservationData) {
+    return new Promise((resolve, reject) => {
+        const { id_customer, id_room, reservation_status, total_cost } = reservationData;
+        pool.query('INSERT INTO reservations (id_customer, id_room, reservation_status, total_cost, check_in_date, check_out_date) VALUES (?, ?, ?, ?, ?, ?)', 
+            [id_customer, id_room, reservation_status, total_cost], 
+            (error, results) => {
+                if (error) {
+                    console.error('Error creating reservation:', error);
+                    return reject(error);
+                }
+                resolve(results.insertId); // Return the ID of the newly created reservation
+            });
+    }
+    );
+}
+
+function updateReservation(reservationId, updatedData) {
+    return new Promise((resolve, reject) => {
+        const { id_customer, id_room, reservation_status, total_cost, check_in_date, check_out_date } = updatedData;
+        pool.query('UPDATE reservations SET id_customer = ?, id_room = ?, reservation_status = ?, total_cost = ?, check_in_date = ?, check_out_date = ? WHERE id_reservation = ?', 
+            [id_customer, id_room, reservation_status, total_cost, check_in_date, check_out_date, reservationId], 
+            (error, results) => {
+                if (error) {
+                    console.error('Error updating reservation:', error);
+                    return reject(error);
+                }
+                resolve(results.affectedRows > 0);
+            });
+    });
+}
+
+function deleteReservation(reservationId) {
+    return new Promise((resolve, reject) => {
+        pool.query('DELETE FROM reservations WHERE id_reservation = ?', [reservationId], (error, results) => {
+            if (error) {
+                console.error('Error deleting reservation:', error);
+                return reject(error);
+            }
+            resolve(results.affectedRows > 0);
+        });
+    });
+}   
+
 
 
 module.exports = {
@@ -99,5 +142,8 @@ module.exports = {
     getAverageCost,
     getAboveTotalCost,
     getBelowTotalCost,
-    getReservationsByRoomName
+    getReservationsByRoomName,
+    createReservation,
+    updateReservation,
+    deleteReservation
 };
