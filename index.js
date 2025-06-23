@@ -1,5 +1,7 @@
 const express = require('express');
 const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 require('dotenv').config();   
 const cors = require('cors');
 const pool = require('./config/bdd');
@@ -11,9 +13,11 @@ const includeRoutes = require('./routes/includeRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const payRoutes = require('./routes/payRoutes');
+const servicesRoutes = require('./routes/servicesRoutes');
 
 app.use(express.json());
 app.use(cors()); // Middleware pour autoriser les requêtes CORS
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/api/reservations', reservationsRoutes);
 app.use('/api/auth', authRoutes);
@@ -23,6 +27,7 @@ app.use('/api/include', includeRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/pay', payRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/services', servicesRoutes);
 
 // Fonction de démarrage du serveur après vérification de la connexion BDD
 async function startServer() {

@@ -1,0 +1,2249 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Airbnb API",
+    "description": "API for managing Airbnb listings, bookings, and users.",
+    "version": "1.0.0"
+  },
+  "produces": [
+    "application/json"
+  ],
+  "host": "127.0.0.1:3000",
+  "basePath": "/",
+  "securityDefinitions": {
+    "type": "apiKey",
+    "name": "Authorization",
+    "in": "header",
+    "description": "Entrer le token JWT sous la forme `Bearer <token>`"
+  },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ],
+  "paths": {
+    "_comment": "Auth",
+    "/auth/login": {
+      "post": {
+        "operationId": "auth_login",
+        "tags": [
+          "Auth"
+        ],
+        "description": "Connecte un utilisateur",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Connexion réussie",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "token": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Identifiants invalides"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "auth_register",
+        "tags": [
+          "Auth"
+        ],
+        "description": "Enregistre un nouvel utilisateur",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                },
+                "first_name": {
+                  "type": "string"
+                },
+                "last_name": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Utilisateur créé avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          }
+        }
+      }
+    },
+    "_comment": "Customers",
+    "/customers": {
+      "get": {
+        "operationId": "customers_getAll",
+        "tags": [
+          "Customers"
+        ],
+        "description": "Récupère tous les clients",
+        "responses": {
+          "200": {
+            "description": "Liste des clients",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Customer"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "customers_create",
+        "tags": [
+          "Customers"
+        ],
+        "description": "Crée un nouveau client",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Customer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Client créé avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          }
+        }
+      }
+    },
+    "/customers/{id}": {
+      "get": {
+        "operationId": "customers_getById",
+        "tags": [
+          "Customers"
+        ],
+        "description": "Récupère un client par son ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du client"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Client trouvé",
+            "schema": {
+              "$ref": "#/definitions/Customer"
+            }
+          },
+          "404": {
+            "description": "Client non trouvé"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "customers_update",
+        "tags": [
+          "Customers"
+        ],
+        "description": "Met à jour un client",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du client"
+          },
+          {
+            "name": "customer",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Customer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Client mis à jour avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          },
+          "404": {
+            "description": "Client non trouvé"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "customers_delete",
+        "tags": [
+          "Customers"
+        ],
+        "description": "Supprime un client",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du client"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Client supprimé avec succès"
+          },
+          "404": {
+            "description": "Client non trouvé"
+          }
+        }
+      }
+    },
+    "/customers/date/{registration_date}": {
+      "get": {
+        "operationId": "customers_getByRegistrationDate",
+        "tags": [
+          "Customers"
+        ],
+        "description": "Récupère les clients par date d'inscription",
+        "parameters": [
+          {
+            "name": "registration_date",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "date",
+            "description": "Date d'inscription au format YYYY-MM-DD"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des clients inscrits à cette date",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Customer"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun client trouvé pour cette date"
+          }
+        }
+      }
+    },
+    "/customers/spent/{total_cost}": {
+      "get": {
+        "operationId": "customers_getByTotalSpent",
+        "tags": [
+          "Customers"
+        ],
+        "description": "Récupère les clients ayant dépensé un montant total donné",
+        "parameters": [
+          {
+            "name": "total_cost",
+            "in": "path",
+            "required": true,
+            "type": "number",
+            "format": "float",
+            "description": "Montant total dépensé"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des clients ayant dépensé ce montant",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Customer"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun client trouvé ayant dépensé ce montant"
+          }
+        }
+      }
+    },
+    "/customers/reservations/rooms/{room_name}": {
+      "get": {
+        "operationId": "customers_getByRoomName",
+        "tags": [
+          "Customers"
+        ],
+        "description": "Récupère les clients ayant réservé une chambre donnée",
+        "parameters": [
+          {
+            "name": "room_name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Nom de la chambre"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des clients ayant réservé cette chambre",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Customer"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun client trouvé ayant réservé cette chambre"
+          }
+        }
+      }
+    },
+    "_comment": "Reservations",
+    "/reservations": {
+      "get": {
+        "operationId": "reservations_getAll",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "Récupère toutes les réservations",
+        "responses": {
+          "200": {
+            "description": "Liste des réservations",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Reservation"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "reservations_create",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "Crée une nouvelle réservation",
+        "parameters": [
+          {
+            "name": "reservation",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Reservation"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Réservation créée avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          }
+        }
+      }
+    },
+    "/reservations/{id}": {
+      "get": {
+        "operationId": "reservations_getById",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "Récupère une réservation par son ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID de la réservation"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Réservation trouvée",
+            "schema": {
+              "$ref": "#/definitions/Reservation"
+            }
+          },
+          "404": {
+            "description": "Réservation non trouvée"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "reservations_update",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "Met à jour une réservation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID de la réservation"
+          },
+          {
+            "name": "reservation",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Reservation"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Réservation mise à jour avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          },
+          "404": {
+            "description": "Réservation non trouvée"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "reservations_delete",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "Supprime une réservation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID de la réservation"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Réservation supprimée avec succès"
+          },
+          "404": {
+            "description": "Réservation non trouvée"
+          }
+        }
+      }
+    },
+    "/reservations/status/{reservation_status}": {
+      "get": {
+        "operationId": "reservations_getByStatus",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "Récupère les réservations par statut",
+        "parameters": [
+          {
+            "name": "reservation_status",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Statut de la réservation (e.g., confirmed, cancelled)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des réservations avec ce statut",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Reservation"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucune réservation trouvée avec ce statut"
+          }
+        }
+      }
+    },
+    "/reservations/average_cost": {
+      "get": {
+        "operationId": "reservations_getAverageCost",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "Récupère le coût moyen des réservations",
+        "responses": {
+          "200": {
+            "description": "Coût moyen des réservations",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          }
+        }
+      }
+    },
+    "/reservations/above/total_cost/{total_cost}": {
+      "get": {
+        "operationId": "reservations_getAboveTotalCost",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "Récupère les réservations avec un coût total supérieur à un certain montant",
+        "parameters": [
+          {
+            "name": "total_cost",
+            "in": "path",
+            "required": true,
+            "type": "number",
+            "format": "float",
+            "description": "Montant total à comparer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des réservations avec un coût total supérieur à {total_cost}",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Reservation"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucune réservation trouvée avec un coût total supérieur à {total_cost}"
+          }
+        }
+      }
+    },
+    "/reservations/below/total_cost/{total_cost}": {
+      "get": {
+        "operationId": "reservations_getBelowTotalCost",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "Récupère les réservations avec un coût total inférieur à un certain montant",
+        "parameters": [
+          {
+            "name": "total_cost",
+            "in": "path",
+            "required": true,
+            "type": "number",
+            "format": "float",
+            "description": "Montant total à comparer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des réservations avec un coût total inférieur à {total_cost}",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Reservation"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucune réservation trouvée avec un coût total inférieur à {total_cost}"
+          }
+        }
+      }
+    },
+    "/reservations/rooms/{room_name}": {
+      "get": {
+        "operationId": "reservations_getByRoomName",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "Récupère les réservations pour une chambre spécifique",
+        "parameters": [
+          {
+            "name": "room_name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Nom de la chambre"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des réservations pour la chambre {room_name}",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Reservation"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucune réservation trouvée pour la chambre {room_name}"
+          }
+        }
+      }
+    },
+    "_comment": "Rooms",
+    "/rooms": {
+      "get": {
+        "operationId": "rooms_getAll",
+        "tags": [
+          "Rooms"
+        ],
+        "description": "Récupère toutes les chambres",
+        "responses": {
+          "200": {
+            "description": "Liste des chambres",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Room"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "rooms_create",
+        "tags": [
+          "Rooms"
+        ],
+        "description": "Crée une nouvelle chambre",
+        "parameters": [
+          {
+            "name": "room",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Room"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Chambre créée avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          }
+        }
+      }
+    },
+    "/rooms/{id}": {
+      "get": {
+        "operationId": "rooms_getById",
+        "tags": [
+          "Rooms"
+        ],
+        "description": "Récupère une chambre par son ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID de la chambre"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chambre trouvée",
+            "schema": {
+              "$ref": "#/definitions/Room"
+            }
+          },
+          "404": {
+            "description": "Chambre non trouvée"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "rooms_update",
+        "tags": [
+          "Rooms"
+        ],
+        "description": "Met à jour une chambre",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID de la chambre"
+          },
+          {
+            "name": "room",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Room"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chambre mise à jour avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          },
+          "404": {
+            "description": "Chambre non trouvée"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "rooms_delete",
+        "tags": [
+          "Rooms"
+        ],
+        "description": "Supprime une chambre",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID de la chambre"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Chambre supprimée avec succès"
+          },
+          "404": {
+            "description": "Chambre non trouvée"
+          }
+        }
+      }
+    },
+    "/rooms/available": {
+      "get": {
+        "operationId": "rooms_getAvailable",
+        "tags": [
+          "Rooms"
+        ],
+        "description": "Récupère les chambres disponibles",
+        "responses": {
+          "200": {
+            "description": "Liste des chambres disponibles",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Room"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rooms/pricesAbove/{price_per_night}": {
+      "get": {
+        "operationId": "rooms_getPricesAbove",
+        "tags": [
+          "Rooms"
+        ],
+        "description": "Récupère les chambres avec un prix par nuit supérieur à un certain montant",
+        "parameters": [
+          {
+            "name": "price_per_night",
+            "in": "path",
+            "required": true,
+            "type": "number",
+            "description": "Prix par nuit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des chambres trouvées",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Room"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucune chambre trouvée"
+          }
+        }
+      }
+    },
+    "/rooms/pricesBelow/{price_per_night}": {
+      "get": {
+        "operationId": "rooms_getPricesBelow",
+        "tags": [
+          "Rooms"
+        ],
+        "description": "Récupère les chambres avec un prix par nuit inférieur à un certain montant",
+        "parameters": [
+          {
+            "name": "price_per_night",
+            "in": "path",
+            "required": true,
+            "type": "number",
+            "description": "Prix par nuit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des chambres trouvées",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Room"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucune chambre trouvée"
+          }
+        }
+      }
+    },
+    "/rooms/name/{room_name}": {
+      "get": {
+        "operationId": "rooms_getByName",
+        "tags": [
+          "Rooms"
+        ],
+        "description": "Récupère une chambre par son nom",
+        "parameters": [
+          {
+            "name": "room_name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Nom de la chambre"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chambre trouvée",
+            "schema": {
+              "$ref": "#/definitions/Room"
+            }
+          },
+          "404": {
+            "description": "Chambre non trouvée"
+          }
+        }
+      }
+    },
+    "/rooms/capacity/{capacity}": {
+      "get": {
+        "operationId": "rooms_getByCapacity",
+        "tags": [
+          "Rooms"
+        ],
+        "description": "Récupère les chambres par capacité",
+        "parameters": [
+          {
+            "name": "capacity",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Capacité de la chambre"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des chambres trouvées",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Room"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucune chambre trouvée"
+          }
+        }
+      }
+    },
+    "_comment": "Payments",
+    "/payments": {
+      "get": {
+        "operationId": "payments_getAll",
+        "tags": [
+          "Payments"
+        ],
+        "description": "Récupère tous les paiements",
+        "responses": {
+          "200": {
+            "description": "Liste des paiements",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Payment"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "payments_create",
+        "tags": [
+          "Payments"
+        ],
+        "description": "Crée un nouveau paiement",
+        "parameters": [
+          {
+            "name": "payment",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Paiement créé avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          }
+        }
+      }
+    },
+    "/payments/{id}": {
+      "get": {
+        "operationId": "payments_getById",
+        "tags": [
+          "Payments"
+        ],
+        "description": "Récupère un paiement par son ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du paiement"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paiement trouvé",
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          },
+          "404": {
+            "description": "Paiement non trouvé"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "payments_update",
+        "tags": [
+          "Payments"
+        ],
+        "description": "Met à jour un paiement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du paiement"
+          },
+          {
+            "name": "payment",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paiement mis à jour avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          },
+          "404": {
+            "description": "Paiement non trouvé"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "payments_delete",
+        "tags": [
+          "Payments"
+        ],
+        "description": "Supprime un paiement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du paiement"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Paiement supprimé avec succès"
+          },
+          "404": {
+            "description": "Paiement non trouvé"
+          }
+        }
+      }
+    },
+    "/payments/{payment_method}": {
+      "get": {
+        "operationId": "payments_getByMethod",
+        "tags": [
+          "Payments"
+        ],
+        "description": "Récupère les paiements par méthode de paiement",
+        "parameters": [
+          {
+            "name": "payment_method",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Méthode de paiement (e.g., credit_card, cash)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des paiements avec cette méthode",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Payment"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/above/{amount}": {
+      "get": {
+        "operationId": "payments_getAboveAmount",
+        "tags": [
+          "Payments"
+        ],
+        "description": "Récupère les paiements supérieurs à un certain montant",
+        "parameters": [
+          {
+            "name": "amount",
+            "in": "path",
+            "required": true,
+            "type": "number",
+            "format": "float",
+            "description": "Montant à comparer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des paiements supérieurs à {amount}",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Payment"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun paiement trouvé supérieur à {amount}"
+          }
+        }
+      }
+    },
+    "/payments/reservation/{reservation_status}": {
+      "get": {
+        "operationId": "payments_getByReservationStatus",
+        "tags": [
+          "Payments"
+        ],
+        "description": "Récupère les paiements par statut de réservation",
+        "parameters": [
+          {
+            "name": "reservation_status",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Statut de réservation (e.g., confirmed, pending)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des paiements avec ce statut de réservation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Payment"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun paiement trouvé avec ce statut de réservation"
+          }
+        }
+      }
+    },
+    "/payments/total/month/{month}/year/{year}": {
+      "get": {
+        "operationId": "payments_getTotalByMonthYear",
+        "tags": [
+          "Payments"
+        ],
+        "description": "Récupère le total des paiements pour un mois et une année donnés",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Mois (1-12)"
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Année (e.g., 2023)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Total des paiements pour {month}/{year}",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "404": {
+            "description": "Aucun paiement trouvé pour {month}/{year}"
+          }
+        }
+      }
+    },
+    "/payments/total/reservation/{reservation_status}": {
+      "get": {
+        "operationId": "payments_getTotalByReservationStatus",
+        "tags": [
+          "Payments"
+        ],
+        "description": "Récupère le total des paiements par statut de réservation",
+        "parameters": [
+          {
+            "name": "reservation_status",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Statut de réservation (e.g., confirmed, pending)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Total des paiements avec ce statut de réservation",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "404": {
+            "description": "Aucun paiement trouvé avec ce statut de réservation"
+          }
+        }
+      }
+    },
+    "_comment": "Services",
+    "/services": {
+      "get": {
+        "operationId": "services_getAll",
+        "tags": [
+          "Services"
+        ],
+        "description": "Récupère tous les services",
+        "responses": {
+          "200": {
+            "description": "Liste des services",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Service"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "services_create",
+        "tags": [
+          "Services"
+        ],
+        "description": "Crée un nouveau service",
+        "parameters": [
+          {
+            "name": "service",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Service"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Service créé avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          }
+        }
+      }
+    },
+    "/services/{id}": {
+      "get": {
+        "operationId": "services_getById",
+        "tags": [
+          "Services"
+        ],
+        "description": "Récupère un service par son ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du service"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service trouvé",
+            "schema": {
+              "$ref": "#/definitions/Service"
+            }
+          },
+          "404": {
+            "description": "Service non trouvé"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "services_update",
+        "tags": [
+          "Services"
+        ],
+        "description": "Met à jour un service",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du service"
+          },
+          {
+            "name": "service",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Service"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service mis à jour avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          },
+          "404": {
+            "description": "Service non trouvé"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "services_delete",
+        "tags": [
+          "Services"
+        ],
+        "description": "Supprime un service",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du service"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Service supprimé avec succès"
+          },
+          "404": {
+            "description": "Service non trouvé"
+          }
+        }
+      }
+    },
+    "/services/available": {
+      "get": {
+        "operationId": "services_getAvailable",
+        "tags": [
+          "Services"
+        ],
+        "description": "Récupère les services disponibles",
+        "responses": {
+          "200": {
+            "description": "Liste des services disponibles",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Service"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/services/above/{price}": {
+      "get": {
+        "operationId": "services_getAbovePrice",
+        "tags": [
+          "Services"
+        ],
+        "description": "Récupère les services avec un prix supérieur à un certain montant",
+        "parameters": [
+          {
+            "name": "price",
+            "in": "path",
+            "required": true,
+            "type": "number",
+            "format": "float",
+            "description": "Prix à comparer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des services trouvés",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Service"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun service trouvé"
+          }
+        }
+      }
+    },
+    "/services/room/{room_name}": {
+      "get": {
+        "operationId": "services_getByRoom",
+        "tags": [
+          "Services"
+        ],
+        "description": "Récupère les services d'une chambre spécifique",
+        "parameters": [
+          {
+            "name": "room_name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Nom de la chambre"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des services trouvés",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Service"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun service trouvé"
+          }
+        }
+      }
+    },
+    "/services/less_costly": {
+      "get": {
+        "operationId": "services_getLessCostly",
+        "tags": [
+          "Services"
+        ],
+        "description": "Récupère les services les moins coûteux",
+        "responses": {
+          "200": {
+            "description": "Liste des services les moins coûteux",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Service"
+              }
+            }
+          }
+        }
+      }
+    },
+    "_comment": "Include",
+    "/include": {
+      "get": {
+        "operationId": "include_getAll",
+        "tags": [
+          "Include"
+        ],
+        "description": "Récupère tous les éléments inclus",
+        "responses": {
+          "200": {
+            "description": "Liste des éléments inclus",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Include"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "include_create",
+        "tags": [
+          "Include"
+        ],
+        "description": "Crée un nouvel élément inclus",
+        "parameters": [
+          {
+            "name": "include",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Include"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Élément inclus créé avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          }
+        }
+      }
+    },
+    "/include/{id}": {
+      "get": {
+        "operationId": "include_getById",
+        "tags": [
+          "Include"
+        ],
+        "description": "Récupère un élément inclus par son ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID de l'élément inclus"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Élément inclus trouvé",
+            "schema": {
+              "$ref": "#/definitions/Include"
+            }
+          },
+          "404": {
+            "description": "Élément inclus non trouvé"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "include_update",
+        "tags": [
+          "Include"
+        ],
+        "description": "Met à jour un élément inclus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID de l'élément inclus"
+          },
+          {
+            "name": "include",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Include"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Élément inclus mis à jour avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          },
+          "404": {
+            "description": "Élément inclus non trouvé"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "include_delete",
+        "tags": [
+          "Include"
+        ],
+        "description": "Supprime un élément inclus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID de l'élément inclus à supprimer"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Élément inclus supprimé avec succès"
+          },
+          "404": {
+            "description": "Élément inclus non trouvé"
+          }
+        }
+      }
+    },
+    "/include/reservations/{id_reservation}": {
+      "get": {
+        "operationId": "include_getReservationById",
+        "tags": [
+          "Include"
+        ],
+        "description": "Récupère une réservation incluse par son ID",
+        "parameters": [
+          {
+            "name": "id_reservation",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID de la réservation incluse"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Réservation incluse trouvée",
+            "schema": {
+              "$ref": "#/definitions/Reservation"
+            }
+          },
+          "404": {
+            "description": "Réservation incluse non trouvée"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "include_deleteReservation",
+        "tags": [
+          "Include"
+        ],
+        "description": "Supprime une réservation incluse",
+        "parameters": [
+          {
+            "name": "id_reservation",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID de la réservation incluse à supprimer"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Réservation incluse supprimée avec succès"
+          },
+          "404": {
+            "description": "Réservation incluse non trouvée"
+          }
+        }
+      }
+    },
+    "/include/total_services/{id_reservation}": {
+      "get": {
+        "operationId": "include_getTotalServicesByReservation",
+        "tags": [
+          "Include"
+        ],
+        "description": "Récupère le nombre total de services pour une réservation incluse",
+        "parameters": [
+          {
+            "name": "id_reservation",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID de la réservation incluse"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Nombre total de services récupéré avec succès",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "404": {
+            "description": "Réservation incluse non trouvée"
+          }
+        }
+      }
+    },
+    "/include/rooms/{room_name}": {
+      "get": {
+        "operationId": "include_getByRoomName",
+        "tags": [
+          "Include"
+        ],
+        "description": "Récupère les éléments inclus par le nom de la chambre",
+        "parameters": [
+          {
+            "name": "room_name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Nom de la chambre"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des éléments inclus trouvés",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Include"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun élément inclus trouvé pour cette chambre"
+          }
+        }
+      }
+    },
+    "_comment": "Pay",
+    "/pay": {
+      "post": {
+        "operationId": "pay_create",
+        "tags": [
+          "Pay"
+        ],
+        "description": "Effectue un paiement",
+        "parameters": [
+          {
+            "name": "payment",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Paiement effectué avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          }
+        }
+      }
+    },
+    "/pay/{id}": {
+      "get": {
+        "operationId": "pay_getById",
+        "tags": [
+          "Pay"
+        ],
+        "description": "Récupère un paiement par son ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du paiement"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paiement trouvé",
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          },
+          "404": {
+            "description": "Paiement non trouvé"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "pay_update",
+        "tags": [
+          "Pay"
+        ],
+        "description": "Met à jour un paiement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du paiement"
+          },
+          {
+            "name": "payment",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paiement mis à jour avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          },
+          "404": {
+            "description": "Paiement non trouvé"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "pay_delete",
+        "tags": [
+          "Pay"
+        ],
+        "description": "Supprime un paiement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du paiement à supprimer"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Paiement supprimé avec succès"
+          },
+          "404": {
+            "description": "Paiement non trouvé"
+          }
+        }
+      }
+    },
+    "_comment": "Feedback",
+    "/feedback": {
+      "post": {
+        "operationId": "feedback_create",
+        "tags": [
+          "Feedback"
+        ],
+        "description": "Soumet un retour d'expérience",
+        "parameters": [
+          {
+            "name": "feedback",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Feedback"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Retour d'expérience soumis avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          }
+        }
+      }
+    },
+    "/feedback/{id}": {
+      "get": {
+        "operationId": "feedback_getById",
+        "tags": [
+          "Feedback"
+        ],
+        "description": "Récupère un retour d'expérience par son ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du retour d'expérience"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Retour d'expérience trouvé",
+            "schema": {
+              "$ref": "#/definitions/Feedback"
+            }
+          },
+          "404": {
+            "description": "Retour d'expérience non trouvé"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "feedback_update",
+        "tags": [
+          "Feedback"
+        ],
+        "description": "Met à jour un retour d'expérience",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du retour d'expérience"
+          },
+          {
+            "name": "feedback",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Feedback"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Retour d'expérience mis à jour avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          },
+          "404": {
+            "description": "Retour d'expérience non trouvé"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "feedback_delete",
+        "tags": [
+          "Feedback"
+        ],
+        "description": "Supprime un retour d'expérience",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID du retour d'expérience à supprimer"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Retour d'expérience supprimé avec succès"
+          },
+          "404": {
+            "description": "Retour d'expérience non trouvé"
+          }
+        }
+      }
+    },
+    "/feedback/room/{room_name}": {
+      "get": {
+        "operationId": "feedback_getByRoomName",
+        "tags": [
+          "Feedback"
+        ],
+        "description": "Récupère les retours d'expérience par le nom de la chambre",
+        "parameters": [
+          {
+            "name": "room_name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Nom de la chambre"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Retours d'expérience trouvés",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Feedback"
+              }
+            }
+          },
+          "404": {
+            "description": "Aucun retour d'expérience trouvé pour cette chambre"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Customer": {
+      "type": "object",
+      "required": [
+        "first_name",
+        "last_name",
+        "email"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID unique du client"
+        },
+        "first_name": {
+          "type": "string",
+          "description": "Prénom du client"
+        },
+        "last_name": {
+          "type": "string",
+          "description": "Nom de famille du client"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Adresse email du client"
+        },
+        "registration_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Date d'inscription du client au format YYYY-MM-DD"
+        },
+        "total_spent": {
+          "type": "number",
+          "format": "float",
+          "description": "Montant total dépensé par le client"
+        }
+      }
+    },
+    "Reservation": {
+      "type": "object",
+      "required": [
+        "id_customer",
+        "id_room",
+        "check_in_date",
+        "check_out_date",
+        "reservation_status",
+        "total_cost"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID unique de la réservation"
+        },
+        "id_customer": {
+          "type": "string",
+          "description": "ID du client"
+        },
+        "id_room": {
+          "type": "string",
+          "description": "ID de la chambre"
+        },
+        "check_in_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Date d'arrivée au format YYYY-MM-DD"
+        },
+        "check_out_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Date de départ au format YYYY-MM-DD"
+        },
+        "reservation_status": {
+          "type": "string",
+          "description": "Statut de la réservation (e.g., confirmed, cancelled)"
+        },
+        "total_cost": {
+          "type": "number",
+          "format": "float",
+          "description": "Coût total de la réservation"
+        }
+      }
+    },
+    "Room": {
+      "type": "object",
+      "required": [
+        "room_name",
+        "capacity",
+        "price_per_night",
+        "image_url",
+        "description"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID unique de la chambre"
+        },
+        "room_name": {
+          "type": "string",
+          "description": "Nom de la chambre"
+        },
+        "capacity": {
+          "type": "integer",
+          "description": "Capacité de la chambre"
+        },
+        "price_per_night": {
+          "type": "number",
+          "format": "float",
+          "description": "Prix par nuit"
+        },
+        "image_url": {
+          "type": "string",
+          "description": "URL de l'image de la chambre"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description de la chambre"
+        }
+      }
+    },
+    "Payment": {
+      "type": "object",
+      "required": [
+        "id_payment",
+        "payment_date",
+        "amount",
+        "payment_method",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID unique du paiement"
+        },
+        "id_payment": {
+          "type": "string",
+          "description": "ID du paiement"
+        },
+        "payment_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Date du paiement au format YYYY-MM-DD"
+        },
+        "amount": {
+          "type": "number",
+          "format": "float",
+          "description": "Montant du paiement"
+        },
+        "payment_method": {
+          "type": "string",
+          "description": "Méthode de paiement (e.g., credit_card, cash)"
+        },
+        "status": {
+          "type": "string",
+          "description": "Statut du paiement (e.g., completed, pending)"
+        }
+      }
+    },
+    "Service": {
+      "type": "object",
+      "required": [
+        "id_service",
+        "service_name",
+        "description",
+        "price"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID unique du service"
+        },
+        "id_service": {
+          "type": "string",
+          "description": "ID du service"
+        },
+        "service_name": {
+          "type": "string",
+          "description": "Nom du service"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description du service"
+        },
+        "price": {
+          "type": "number",
+          "format": "float",
+          "description": "Prix du service"
+        },
+        "available": {
+          "type": "boolean",
+          "description": "Disponibilité du service"
+        }
+      }
+    },
+    "Include": {
+      "type": "object",
+      "required": [
+        "id_reservation",
+        "id_service",
+        "quantity",
+        "total_price"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID unique de l'élément inclus"
+        },
+        "id_reservation": {
+          "type": "string",
+          "description": "ID de la réservation"
+        },
+        "id_service": {
+          "type": "string",
+          "description": "ID du service"
+        },
+        "quantity": {
+          "type": "integer",
+          "description": "Quantité du service inclus"
+        },
+        "total_price": {
+          "type": "number",
+          "format": "float",
+          "description": "Prix total de l'élément inclus"
+        }
+      }
+    },
+    "Feedback": {
+      "type": "object",
+      "required": [
+        "rating",
+        "comment",
+        "comment_date",
+        "id_customer"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID unique du retour d'expérience"
+        },
+        "rating": {
+          "type": "integer",
+          "description": "Note du retour (e.g., 1-5)"
+        },
+        "comment": {
+          "type": "string",
+          "description": "Commentaire du client"
+        },
+        "comment_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Date du commentaire au format YYYY-MM-DD"
+        },
+        "id_customer": {
+          "type": "string",
+          "description": "ID du client"
+        }
+      }
+    }
+  },
+  "parameters": {
+    "id": {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "type": "string",
+      "description": "ID de l'entité"
+    },
+    "payment": {
+      "name": "payment",
+      "in": "body",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Payment"
+      }
+    },
+    "service": {
+      "name": "service",
+      "in": "body",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Service"
+      }
+    },
+    "include": {
+      "name": "include",
+      "in": "body",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Include"
+      }
+    },
+    "feedback": {
+      "name": "feedback",
+      "in": "body",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Feedback"
+      }
+    }
+  }
+}

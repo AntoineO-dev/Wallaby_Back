@@ -21,6 +21,9 @@ router.get('/below/total_cost/:total_cost', reservationsController.getAboveTotal
 // /reservations/rooms/:room_name
 router.get('/rooms/:room_name', reservationsController.getAboveTotalCost);
 
+// /reservations/:id
+router.get('/:id', reservationsController.getReservationById);
+
 // /POST /reservations
 router.post('/', authController.verifyToken, (req, res) => {reservationsController.createReservation(req, res)});
 
@@ -34,7 +37,5 @@ router.delete('/:id', authController.verifyToken, (req, res) => {reservationsCon
 
 
 
-// /reservations/:id
-router.get('/:id', reservationsController.getReservationById);
 
 module.exports = router;
