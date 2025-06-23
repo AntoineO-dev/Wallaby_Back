@@ -92,9 +92,9 @@ function getReservationById(reservationId) {
 
 function createReservation(reservationData) {
     return new Promise((resolve, reject) => {
-        const { id_customer, id_room, reservation_status, total_cost } = reservationData;
+        const { id_customer, id_room, reservation_status, total_cost, check_in_date, check_out_date } = reservationData;
         pool.query('INSERT INTO reservations (id_customer, id_room, reservation_status, total_cost, check_in_date, check_out_date) VALUES (?, ?, ?, ?, ?, ?)', 
-            [id_customer, id_room, reservation_status, total_cost], 
+            [id_customer, id_room, reservation_status, total_cost, check_in_date, check_out_date], 
             (error, results) => {
                 if (error) {
                     console.error('Error creating reservation:', error);
@@ -102,8 +102,7 @@ function createReservation(reservationData) {
                 }
                 resolve(results.insertId); // Return the ID of the newly created reservation
             });
-    }
-    );
+    });
 }
 
 function updateReservation(reservationId, updatedData) {
