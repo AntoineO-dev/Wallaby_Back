@@ -14,7 +14,7 @@ function getAllRooms() {
 
 function getAvailableRooms() {
     return new Promise((resolve, reject) => {
-        pool.query('SELECT room_name, capacity, price_per_night, status, description FROM rooms WHERE status = true', (error, results) => {
+        pool.query('SELECT room_name, capacity, price_per_night, status, description FROM rooms WHERE reservation_status = true', (error, results) => {
             if (error) {
                 console.error('Error fetching available rooms:', error);
                 return reject(error);
@@ -77,7 +77,7 @@ function getRoomsByCapacity(capacity) {
 
 function getRoomById(roomId) {
     return new Promise((resolve, reject) => {
-        pool.query('SELECT * FROM rooms WHERE id = ?', [roomId], (error, results) => {
+        pool.query('SELECT * FROM rooms WHERE id_room = ?', [roomId], (error, results) => {
             if (error) {
                 console.error('Error fetching room by ID:', error);
                 return reject(error);
