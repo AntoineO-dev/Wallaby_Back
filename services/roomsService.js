@@ -135,6 +135,26 @@ function deleteRoom(roomId) {
     });
 }
 
+async function getRoomDetails(roomId) {
+    try {
+        const [rooms] = await pool.query(
+            'SELECT * FROM rooms WHERE id_room = ?',
+            [roomId]
+        );
+        
+        if (rooms.length === 0) {
+            throw new Error('Chambre non trouvée');
+        }
+        
+        return rooms[0];
+    } catch (error) {
+        console.error('Erreur lors de la récupération des détails de la chambre:', error);
+        throw error;
+    }
+}
+
+
+
 module.exports = {
     getAllRooms,
     getRoomById,
@@ -145,5 +165,6 @@ module.exports = {
     getRoomsByCapacity,
     createRoom,
     updateRoom,
-    deleteRoom
+    deleteRoom,
+    getRoomDetails
 };

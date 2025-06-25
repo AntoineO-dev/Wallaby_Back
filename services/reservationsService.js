@@ -133,6 +133,49 @@ function deleteReservation(reservationId) {
 }   
 
 
+// Vérifier la disponibilité d'une chambre pour une période donnée
+async function checkRoomAvailability(roomId, checkInDate, checkOutDate) {
+    try {
+        // Convertir les dates en format SQL
+        const sqlCheckInDate = new Date(checkInDate).toISOString().split('T')[0];
+        const sqlCheckOutDate = new Date(checkOutDate).toISOString().split('T')[0];
+        
+        // Vérifier d'abord si la chambre existe
+        const [rooms] = await pool.query(
+            'SELECT * FROM rooms WHERE id_room = ?',
+            [roomId]
+        );
+        
+        if (rooms.length === 0) {
+            throw new Error('La chambre demandée n\'existe pas');
+        }
+        
+        // Vérifier la disponibilité
+        const [overlappingReservations] = await pool.query(
+            `SELECT id_reservation, check_in_date, check_out_date 
+             FROM reservations 
+             WHERE id_room = ? 
+             AND reservation_status != 'cancelled'
+             AND (
+                (check_in_date <= ? AND check_out_date > ?) OR
+                (check_in_date < ? AND check_out_date >= ?) OR
+                (check_in_date >= ? AND check_out_date <= ?)
+             )`,
+            [roomId, sqlCheckOutDate, sqlCheckInDate, sqlCheckOutDate, sqlCheckInDate, sqlCheckInDate, sqlCheckOutDate]
+        );
+        
+        return {
+            isAvailable: overlappingReservations.length === 0,
+            conflictingReservations: overlappingReservations
+        };
+    } catch (error) {
+        console.error('Erreur lors de la vérification de disponibilité:', error);
+        throw error;
+    }
+}
+
+
+
 
 module.exports = {
     getAllReservations,
@@ -144,5 +187,7 @@ module.exports = {
     getReservationsByRoomName,
     createReservation,
     updateReservation,
-    deleteReservation
+    deleteReservation,
+    checkRoomAvailability,
+
 };

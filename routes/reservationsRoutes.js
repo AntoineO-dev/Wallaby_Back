@@ -33,9 +33,10 @@ router.patch('/:id', authController.verifyToken, (req, res) => {reservationsCont
 // DELETE /reservations/:id
 router.delete('/:id', authController.verifyToken, (req, res) => {reservationsController.deleteReservation(req, res)});
 
+// Route de confirmation de réservation
+router.post('/:id/confirm', authController.verifyToken, (req, res) => {reservationsController.confirmReservation(req, res);});
 
-
-
-
+// Route pour vérifier la disponibilité d'une chambre
+router.get('/check-availability', authController.verifyToken, (req, res) => { reservationsController.checkAvailability(req, res); });
 
 module.exports = router;

@@ -33,4 +33,7 @@ router.patch('/:id', authController.verifyToken, (req, res) => {roomsController.
 // DELETE /rooms/:id
 router.delete('/:id', authController.verifyToken, (req, res) => {roomsController.deleteRoom(req, res)});
 
+// Route pour obtenir les détails d'une chambre
+router.get('/:id/details', authController.verifyToken, (req, res) => {roomsController.getRoomDetails(req, res)});   
+
 module.exports = router;

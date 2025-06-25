@@ -134,6 +134,22 @@ async function deleteRoom(req, res) {
     }
 }
 
+async function getRoomDetails(req, res) {
+    try {
+        const roomId = req.params.id;
+        
+        if (!roomId) {
+            return res.status(400).json({ message: 'ID de chambre requis' });
+        }
+        
+        const roomDetails = await reservationsService.getRoomDetails(roomId);
+        res.status(200).json(roomDetails);
+    } catch (error) {
+        console.error('Error fetching room details:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+}
+
 module.exports = {
     getAllRooms,
     getRoomById,
@@ -144,5 +160,6 @@ module.exports = {
     getRoomsByCapacity,
     createRoom,
     updateRoom,
-    deleteRoom
+    deleteRoom,
+    getRoomDetails
 };
