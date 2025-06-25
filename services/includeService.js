@@ -1,91 +1,107 @@
-const pool = require('../config/bdd')
+const pool = require('../config/bdd');
 
-function getAllInclude() {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT * FROM include', (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            resolve(results.rows);
-        });
-    }); 
+async function getAllInclude() {
+    try {
+        const [results] = await pool.query('SELECT * FROM include');
+        return results;
+    } catch (error) {
+        console.error('Error fetching all includes:', error);
+        throw error;
+    }
 }
 
-function getIncludeByReservationId(id_reservation) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT quantity, total_price FROM include INNER JOIN reservations ON include.id_reservation = reservations.id WHERE include.id_reservation = ?', [id_reservation], (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            resolve(results.rows);
-        });
-    });
+async function getIncludeByReservationId(id_reservation) {
+    try {
+        const [results] = await pool.query(
+            'SELECT quantity, total_price FROM include INNER JOIN reservations ON include.id_reservation = reservations.id WHERE include.id_reservation = ?', 
+            [id_reservation]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error fetching include by reservation ID:', error);
+        throw error;
+    }
 }
 
-function getTotalServicesByReservationId(id_reservation) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT SUM(total_price) as total_services FROM include INNER JOIN reservations ON include.id_reservation = reservations.id_reservation WHERE include.id_reservation = ?', [id_reservation], (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            resolve(results.rows);
-        });
-    });
+async function getTotalServicesByReservationId(id_reservation) {
+    try {
+        const [results] = await pool.query(
+            'SELECT SUM(total_price) as total_services FROM include INNER JOIN reservations ON include.id_reservation = reservations.id_reservation WHERE include.id_reservation = ?', 
+            [id_reservation]
+        );
+        return results[0];
+    } catch (error) {
+        console.error('Error calculating total services by reservation ID:', error);
+        throw error;
+    }
 }
 
-function getIncludeByRoomName(room_name) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT * FROM include INNER JOIN reservations ON include.id_reservation = reservations.id_reservation INNER JOIN rooms ON rooms.id_room = reservations.id_room WHERE room_name = ?', [room_name], (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            resolve(results.rows);
-        });
-    });
+async function getIncludeByRoomName(room_name) {
+    try {
+        const [results] = await pool.query(
+            'SELECT * FROM include INNER JOIN reservations ON include.id_reservation = reservations.id_reservation INNER JOIN rooms ON rooms.id_room = reservations.id_room WHERE room_name = ?', 
+            [room_name]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error fetching include by room name:', error);
+        throw error;
+    }
 }
 
-function getIncludeById(id) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT * FROM include WHERE id_include = ?', [id], (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            resolve(results.rows);
-        });
-    });
+async function getIncludeById(id) {
+    try {
+        const [results] = await pool.query(
+            'SELECT * FROM include WHERE id_include = ?', 
+            [id]
+        );
+        if (results.length === 0) {
+            return null;
+        }
+        return results[0];
+    } catch (error) {
+        console.error('Error fetching include by ID:', error);
+        throw error;
+    }
 }
 
-function createInclude(data) {
-    return new Promise((resolve, reject) => {
-        pool.query('INSERT INTO include SET ?', [data], (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            resolve(results.insertId);
-        });
-    });
+async function createInclude(data) {
+    try {
+        const [result] = await pool.query(
+            'INSERT INTO include SET ?', 
+            [data]
+        );
+        return result.insertId;
+    } catch (error) {
+        console.error('Error creating include:', error);
+        throw error;
+    }
 }
 
-function updateInclude(id, data) {
-    return new Promise((resolve, reject) => {
-        pool.query('UPDATE include SET ? WHERE id_include = ?', [data, id], (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            resolve(results.affectedRows);
-        });
-    });
+async function updateInclude(id, data) {
+    try {
+        const [result] = await pool.query(
+            'UPDATE include SET ? WHERE id_include = ?', 
+            [data, id]
+        );
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error('Error updating include:', error);
+        throw error;
+    }
 }
 
-function deleteInclude(id) {
-    return new Promise((resolve, reject) => {
-        pool.query('DELETE FROM include WHERE id_include = ?', [id], (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            resolve(results.affectedRows);
-        });
-    });
+async function deleteInclude(id) {
+    try {
+        const [result] = await pool.query(
+            'DELETE FROM include WHERE id_include = ?', 
+            [id]
+        );
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error('Error deleting include:', error);
+        throw error;
+    }
 }
 
 module.exports = {

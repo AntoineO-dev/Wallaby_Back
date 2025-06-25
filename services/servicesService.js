@@ -1,117 +1,138 @@
-const pool = require ('../config/bdd');
+const pool = require('../config/bdd');
 
-function getAllServices() {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT * FROM services', (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            resolve(results.rows);
-        });
-    });
+async function getAllServices() {
+    try {
+        const [results] = await pool.query('SELECT * FROM services');
+        return results;
+    } catch (error) {
+        console.error('Error fetching all services:', error);
+        throw error;
+    }
 }
 
-function getAvailableServices() {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT service_name, description, text FROM services WHERE available = true', (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            resolve(results.rows);
-        });
-    });
+async function getAvailableServices() {
+    try {
+        const [results] = await pool.query('SELECT service_name, description, text FROM services WHERE available = true');
+        return results;
+    } catch (error) {
+        console.error('Error fetching available services:', error);
+        throw error;
+    }
 }
 
-function getServicesAbovePrice(price) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT service_name, description, available FROM services WHERE price > ?', [price], (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            resolve(results.rows);
-        });
-    });
+async function getServicesAbovePrice(price) {
+    try {
+        const [results] = await pool.query(
+            'SELECT service_name, description, available FROM services WHERE price > ?', 
+            [price]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error fetching services above price:', error);
+        throw error;
+    }
 }
 
-function getServicesByRoomName(roomName) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT service_name, description, available FROM services WHERE room_name = ?', [roomName], (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            resolve(results.rows);
-        });
-    });
+async function getServicesByRoomName(roomName) {
+    try {
+        const [results] = await pool.query(
+            'SELECT service_name, description, available FROM services WHERE room_name = ?', 
+            [roomName]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error fetching services by room name:', error);
+        throw error;
+    }
 }
 
-function getServicesBelowPrice(price) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT service_name, description, available FROM services WHERE price < ?', [price], (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            resolve(results.rows);
-        });
-    });
+async function getServicesBelowPrice(price) {
+    try {
+        const [results] = await pool.query(
+            'SELECT service_name, description, available FROM services WHERE price < ?', 
+            [price]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error fetching services below price:', error);
+        throw error;
+    }
 }
 
-function getServiceById(serviceId) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT * FROM services WHERE id_service = ?', [serviceId], (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            if (results.rows.length === 0) {
-                return reject(new Error('Service not found'));
-            }
-            resolve(results.rows[0]);
-        });
-    });
+async function getServiceById(serviceId) {
+    try {
+        const [results] = await pool.query(
+            'SELECT * FROM services WHERE id_service = ?', 
+            [serviceId]
+        );
+        if (results.length === 0) {
+            throw new Error('Service not found');
+        }
+        return results[0];
+    } catch (error) {
+        console.error('Error fetching service by ID:', error);
+        throw error;
+    }
 }
 
-function createService(serviceData) {
-    return new Promise((resolve, reject) => {
+async function createService(serviceData) {
+    try {
         const { service_name, description, price, available, room_name } = serviceData;
-        pool.query('INSERT INTO services (service_name, description, price, available, room_name) VALUES (?, ?, ?, ?, ?)', 
-            [service_name, description, price, available, room_name], 
-            (error, results) => {
-                if (error) {
-                    return reject(error);
-                }
-                resolve(results.rows);
-            });
-    });
+        const [result] = await pool.query(
+            'INSERT INTO services (service_name, description, price, available, room_name) VALUES (?, ?, ?, ?, ?)', 
+            [service_name, description, price, available, room_name]
+        );
+        
+        // Récupérer le service nouvellement créé
+        if (result.insertId) {
+            const [newService] = await pool.query('SELECT * FROM services WHERE id_service = ?', [result.insertId]);
+            return newService[0];
+        }
+        return null;
+    } catch (error) {
+        console.error('Error creating service:', error);
+        throw error;
+    }
 }
 
-function updateService(serviceId, serviceData) {
-    return new Promise((resolve, reject) => {
+async function updateService(serviceId, serviceData) {
+    try {
         const { service_name, description, price, available, room_name } = serviceData;
-        pool.query('UPDATE services SET service_name = ?, description = ?, price = ?, available = ?, room_name = ? WHERE id_service = ?', 
-            [service_name, description, price, available, room_name, serviceId], 
-            (error, results) => {
-                if (error) {
-                    return reject(error);
-                }
-                resolve(results.rows);
-            });
-    });
+        const [result] = await pool.query(
+            'UPDATE services SET service_name = ?, description = ?, price = ?, available = ?, room_name = ? WHERE id_service = ?', 
+            [service_name, description, price, available, room_name, serviceId]
+        );
+        
+        if (result.affectedRows === 0) {
+            throw new Error('Service not found');
+        }
+        
+        // Récupérer le service mis à jour
+        const [updatedService] = await pool.query('SELECT * FROM services WHERE id_service = ?', [serviceId]);
+        return updatedService[0];
+    } catch (error) {
+        console.error('Error updating service:', error);
+        throw error;
+    }
 }
 
-function deleteService(serviceId) {
-    return new Promise((resolve, reject) => {
-        pool.query('DELETE FROM services WHERE id_service = ?', [serviceId], (error, results) => {
-            if (error) {
-                return reject(error);
-            }
-            if (results.affectedRows === 0) {
-                return reject(new Error('Service not found'));
-            }
-            resolve({ message: 'Service deleted successfully' });
-        });
-    });
+async function deleteService(serviceId) {
+    try {
+        const [result] = await pool.query(
+            'DELETE FROM services WHERE id_service = ?', 
+            [serviceId]
+        );
+        
+        if (result.affectedRows === 0) {
+            throw new Error('Service not found');
+        }
+        
+        return { message: 'Service deleted successfully' };
+    } catch (error) {
+        console.error('Error deleting service:', error);
+        throw error;
+    }
 }
-
-
 
 module.exports = {
     getAllServices,

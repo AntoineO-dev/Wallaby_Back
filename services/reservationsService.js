@@ -1,137 +1,176 @@
 const pool = require('../config/bdd');
 
-function getAllReservations() {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT * FROM reservations', (error, results) => {
-            if (error) {
-                console.error('Error fetching reservations:', error);
-                return reject(error);
-            }
-            resolve(results);
-        });
-    });
-}
-
-function getAllReservationsByStatus(reservationStatus) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT * FROM reservations WHERE status = ?', [reservationStatus], (error, results) => {
-            if (error) {
-                console.error('Error fetching reservations by status:', error);
-                return reject(error);
-            }
-            resolve(results);
-        });
-    });
-}
-
-function getAverageCost() {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT AVG(total_cost) AS averageCost FROM reservations', (error, results) => {
-            if (error) {
-                console.error('Error fetching average cost:', error);
-                return reject(error);
-            }
-            resolve(results[0].averageCost);
-        });
+async function getAllReservations() {
+    try {
+        const [results] = await pool.query('SELECT * FROM reservations');
+        return results;
+    } catch (error) {
+        console.error('Error fetching all reservations:', error);
+        throw error;
     }
-    )
 }
 
-function getAboveTotalCost(totalCost) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT total_cost, reservation_status, id_reservation FROM reservations WHERE total_cost > ?', [totalCost], (error, results) => {
-            if (error) {
-                console.error('Error fetching reservations above total cost:', error);
-                return reject(error);
-            }
-            resolve(results);
-        });
-    });
-}
-
-function getBelowTotalCost(totalCost) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT total_cost, reservation_status, id_reservation FROM reservations WHERE total_cost < ?', [totalCost], (error, results) => {
-            if (error) {
-                console.error('Error fetching reservations below total cost:', error);
-                return reject(error);
-            }
-            resolve(results);
-        });
+async function getReservationById(reservationId) {
+    try {
+        const [results] = await pool.query(
+            'SELECT * FROM reservations WHERE id_reservation = ?',
+            [reservationId]
+        );
+        
+        if (results.length === 0) {
+            return null;
+        }
+        
+        return results[0];
+    } catch (error) {
+        console.error('Error fetching reservation by ID:', error);
+        throw error;
     }
-    );
 }
 
-function getReservationsByRoomName(roomName) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT r.room_name,r.price_per_night,res.reservation_status,res.total_cost FROM reservations res INNER JOIN rooms r ON res.id_room = r.id_room WHERE res.id_room = ?', [roomName], (error, results) => {
-            if (error) {
-                console.error('Error fetching reservations by room name:', error);
-                return reject(error);
-            }
-            resolve(results);
-        });
+async function getAllReservationsByStatus(status) {
+    try {
+        const [results] = await pool.query(
+            'SELECT * FROM reservations WHERE reservation_status = ?',
+            [status]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error fetching reservations by status:', error);
+        throw error;
     }
-    );
 }
 
-function getReservationById(reservationId) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT * FROM reservations WHERE id = ?', [reservationId], (error, results) => {
-            if (error) {
-                console.error('Error fetching reservation:', error);
-                return reject(error);
-            }
-            if (results.length === 0) {
-                return resolve(null); // No reservation found
-            }
-            resolve(results[0]);
-        });
-    });
+async function getAverageCost() {
+    try {
+        const [results] = await pool.query('SELECT AVG(total_cost) as average_cost FROM reservations');
+        return results[0].average_cost || 0;
+    } catch (error) {
+        console.error('Error calculating average cost:', error);
+        throw error;
+    }
 }
 
-function createReservation(reservationData) {
-    return new Promise((resolve, reject) => {
-        const { id_customer, id_room, reservation_status, total_cost, check_in_date, check_out_date } = reservationData;
-        pool.query('INSERT INTO reservations (id_customer, id_room, reservation_status, total_cost, check_in_date, check_out_date) VALUES (?, ?, ?, ?, ?, ?)', 
-            [id_customer, id_room, reservation_status, total_cost, check_in_date, check_out_date], 
-            (error, results) => {
-                if (error) {
-                    console.error('Error creating reservation:', error);
-                    return reject(error);
-                }
-                resolve(results.insertId); // Return the ID of the newly created reservation
-            });
-    });
+async function getAboveTotalCost(totalCost) {
+    try {
+        const [results] = await pool.query(
+            'SELECT * FROM reservations WHERE total_cost > ?',
+            [totalCost]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error fetching reservations above total cost:', error);
+        throw error;
+    }
 }
 
-function updateReservation(reservationId, updatedData) {
-    return new Promise((resolve, reject) => {
-        const { id_customer, id_room, reservation_status, total_cost, check_in_date, check_out_date } = updatedData;
-        pool.query('UPDATE reservations SET id_customer = ?, id_room = ?, reservation_status = ?, total_cost = ?, check_in_date = ?, check_out_date = ? WHERE id_reservation = ?', 
-            [id_customer, id_room, reservation_status, total_cost, check_in_date, check_out_date, reservationId], 
-            (error, results) => {
-                if (error) {
-                    console.error('Error updating reservation:', error);
-                    return reject(error);
-                }
-                resolve(results.affectedRows > 0);
-            });
-    });
+async function getBelowTotalCost(totalCost) {
+    try {
+        const [results] = await pool.query(
+            'SELECT * FROM reservations WHERE total_cost < ?',
+            [totalCost]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error fetching reservations below total cost:', error);
+        throw error;
+    }
 }
 
-function deleteReservation(reservationId) {
-    return new Promise((resolve, reject) => {
-        pool.query('DELETE FROM reservations WHERE id_reservation = ?', [reservationId], (error, results) => {
-            if (error) {
-                console.error('Error deleting reservation:', error);
-                return reject(error);
-            }
-            resolve(results.affectedRows > 0);
-        });
-    });
-}   
+async function getReservationsByRoomName(roomName) {
+    try {
+        const [results] = await pool.query(
+            `SELECT r.* FROM reservations r
+             JOIN rooms rm ON r.id_room = rm.id_room
+             WHERE rm.room_name = ?`,
+            [roomName]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error fetching reservations by room name:', error);
+        throw error;
+    }
+}
 
+async function createReservation(reservationData) {
+    try {
+        const { id_room, id_customer, check_in_date, check_out_date, total_cost, reservation_status } = reservationData;
+        
+        const [result] = await pool.query(
+            'INSERT INTO reservations (id_room, id_customer, check_in_date, check_out_date, total_cost, reservation_status) VALUES (?, ?, ?, ?, ?, ?)',
+            [id_room, id_customer, check_in_date, check_out_date, total_cost, reservation_status]
+        );
+        
+        return result.insertId;
+    } catch (error) {
+        console.error('Error creating reservation:', error);
+        throw error;
+    }
+}
+
+async function updateReservation(reservationId, updatedData) {
+    try {
+        // Construire dynamiquement la requête en fonction des champs fournis
+        let updateFields = [];
+        let updateValues = [];
+        
+        if ('id_room' in updatedData) {
+            updateFields.push('id_room = ?');
+            updateValues.push(updatedData.id_room);
+        }
+        if ('id_customer' in updatedData) {
+            updateFields.push('id_customer = ?');
+            updateValues.push(updatedData.id_customer);
+        }
+        if ('check_in_date' in updatedData) {
+            updateFields.push('check_in_date = ?');
+            updateValues.push(updatedData.check_in_date);
+        }
+        if ('check_out_date' in updatedData) {
+            updateFields.push('check_out_date = ?');
+            updateValues.push(updatedData.check_out_date);
+        }
+        if ('total_cost' in updatedData) {
+            updateFields.push('total_cost = ?');
+            updateValues.push(updatedData.total_cost);
+        }
+        if ('reservation_status' in updatedData) {
+            updateFields.push('reservation_status = ?');
+            updateValues.push(updatedData.reservation_status);
+        }
+        
+        // Si aucun champ à mettre à jour, retourner false
+        if (updateFields.length === 0) {
+            return false;
+        }
+        
+        // Ajouter l'ID de la réservation pour la clause WHERE
+        updateValues.push(reservationId);
+        
+        const [result] = await pool.query(
+            `UPDATE reservations SET ${updateFields.join(', ')} WHERE id_reservation = ?`,
+            updateValues
+        );
+        
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error('Error updating reservation:', error);
+        throw error;
+    }
+}
+
+async function deleteReservation(reservationId) {
+    try {
+        const [result] = await pool.query(
+            'DELETE FROM reservations WHERE id_reservation = ?',
+            [reservationId]
+        );
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error('Error deleting reservation:', error);
+        throw error;
+    }
+}
 
 // Vérifier la disponibilité d'une chambre pour une période donnée
 async function checkRoomAvailability(roomId, checkInDate, checkOutDate) {
@@ -174,8 +213,56 @@ async function checkRoomAvailability(roomId, checkInDate, checkOutDate) {
     }
 }
 
+// Récupérer les détails d'une chambre
+async function getRoomDetails(roomId) {
+    try {
+        const [rooms] = await pool.query(
+            'SELECT * FROM rooms WHERE id_room = ?',
+            [roomId]
+        );
+        
+        if (rooms.length === 0) {
+            throw new Error('Chambre non trouvée');
+        }
+        
+        return rooms[0];
+    } catch (error) {
+        console.error('Erreur lors de la récupération des détails de la chambre:', error);
+        throw error;
+    }
+}
 
-
+// Confirmer une réservation
+async function confirmReservation(reservationId) {
+    try {
+        const [result] = await pool.query(
+            'UPDATE reservations SET reservation_status = ? WHERE id_reservation = ?',
+            ['confirmed', reservationId]
+        );
+        
+        if (result.affectedRows === 0) {
+            return false;
+        }
+        
+        // Optionnellement, mettre à jour le statut de la chambre
+        const [reservation] = await pool.query(
+            'SELECT id_room FROM reservations WHERE id_reservation = ?',
+            [reservationId]
+        );
+        
+        if (reservation.length > 0) {
+            await pool.query(
+                'UPDATE rooms SET status = ? WHERE id_room = ?',
+                ['occupied', reservation[0].id_room]
+            );
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Error confirming reservation:', error);
+        throw error;
+    }
+}
 
 module.exports = {
     getAllReservations,
@@ -189,5 +276,6 @@ module.exports = {
     updateReservation,
     deleteReservation,
     checkRoomAvailability,
-
+    getRoomDetails,
+    confirmReservation
 };

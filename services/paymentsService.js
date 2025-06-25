@@ -1,124 +1,157 @@
-const pool = require ('../config/bdd');
+const pool = require('../config/bdd');
 
-function getAllPayments() {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT payment_date, amount, payment_method FROM payments', (error, results) => {
-            if (error) {
-                return reject(new Error('Database error'));
-            }
-            resolve(results);
-        });
-    });
+async function getAllPayments() {
+    try {
+        const [results] = await pool.query('SELECT payment_date, amount, payment_method FROM payments');
+        return results;
+    } catch (error) {
+        console.error('Error fetching all payments:', error);
+        throw new Error('Database error');
+    }
 }
 
-
-function getPaymentsByMethod(payment_method) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT payment_date, amount FROM payments WHERE payment_method = ?', [payment_method], (error, results) => {
-            if (error) {
-                return reject(new Error('Database error'));
-            }
-            resolve(results);
-        });
-    });
+async function getPaymentsByMethod(payment_method) {
+    try {
+        const [results] = await pool.query(
+            'SELECT payment_date, amount FROM payments WHERE payment_method = ?', 
+            [payment_method]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error fetching payments by method:', error);
+        throw new Error('Database error');
+    }
 }
 
-function getPaymentsAboveAmount(amount) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT payment_date, amount, payment_method FROM payments WHERE amount > ?', [amount], (error, results) => {
-            if (error) {
-                return reject(new Error('Database error'));
-            }
-            resolve(results);
-        });
-    });
+async function getPaymentsAboveAmount(amount) {
+    try {
+        const [results] = await pool.query(
+            'SELECT payment_date, amount, payment_method FROM payments WHERE amount > ?', 
+            [amount]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error fetching payments above amount:', error);
+        throw new Error('Database error');
+    }
 }
 
-function getPaymentsByReservationStatus(reservation_status) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT payment_date, amount, payment_method FROM payments INNER JOIN pay ON pay.id_payment = payments.id_payment INNER JOIN reservations ON reservations.id_reservation = pay.id_reservation WHERE reservation_status = ?', [reservation_status], (error, results) => {
-            if (error) {
-                return reject(new Error('Database error'));
-            }
-            resolve(results);
-        });
-    });
+async function getPaymentsByReservationStatus(reservation_status) {
+    try {
+        const [results] = await pool.query(
+            'SELECT payment_date, amount, payment_method FROM payments INNER JOIN pay ON pay.id_payment = payments.id_payment INNER JOIN reservations ON reservations.id_reservation = pay.id_reservation WHERE reservation_status = ?', 
+            [reservation_status]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error fetching payments by reservation status:', error);
+        throw new Error('Database error');
+    }
 }
 
-function getTotalPaymentsByMonthAndYear(month, year) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT SUM(amount) AS total FROM payments WHERE MONTH(payment_date) = ? AND YEAR(payment_date) = ?', [month, year], (error, results) => {
-            if (error) {
-                return reject(new Error('Database error'));
-            }
-            resolve(results);
-        });
-    });
+async function getTotalPaymentsByMonthAndYear(month, year) {
+    try {
+        const [results] = await pool.query(
+            'SELECT SUM(amount) AS total FROM payments WHERE MONTH(payment_date) = ? AND YEAR(payment_date) = ?', 
+            [month, year]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error calculating total payments by month and year:', error);
+        throw new Error('Database error');
+    }
 }
 
-function getTotalPaymentsByReservationStatus(reservation_status) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT SUM(amount) AS total FROM payments INNER JOIN pay ON pay.id_payment = payments.id_payment INNER JOIN reservations ON reservations.id_reservation = pay.id_reservation WHERE reservation_status = ?', [reservation_status], (error, results) => {
-            if (error) {
-                return reject(new Error('Database error'));
-            }
-            resolve(results);
-        });
-    });
+async function getTotalPaymentsByReservationStatus(reservation_status) {
+    try {
+        const [results] = await pool.query(
+            'SELECT SUM(amount) AS total FROM payments INNER JOIN pay ON pay.id_payment = payments.id_payment INNER JOIN reservations ON reservations.id_reservation = pay.id_reservation WHERE reservation_status = ?', 
+            [reservation_status]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error calculating total payments by reservation status:', error);
+        throw new Error('Database error');
+    }
 }
 
-function createPayment(paymentData) {
-    return new Promise((resolve, reject) => {
-        pool.query('INSERT INTO payments (payment_date, amount, payment_method) VALUES (?, ?, ?) RETURNING *', [paymentData.payment_date, paymentData.amount, paymentData.payment_method], (error, results) => {
-            if (error) {
-                return reject(new Error('Database error'));
-            }
-            resolve(results[0]);
-        });
-    });
+async function createPayment(paymentData) {
+    try {
+        const [result] = await pool.query(
+            'INSERT INTO payments (payment_date, amount, payment_method) VALUES (?, ?, ?)', 
+            [paymentData.payment_date, paymentData.amount, paymentData.payment_method]
+        );
+        
+        // MySQL ne supporte pas RETURNING, donc nous devons faire une requête séparée
+        if (result.insertId) {
+            const [newPayment] = await pool.query('SELECT * FROM payments WHERE id_payment = ?', [result.insertId]);
+            return newPayment[0];
+        }
+        return null;
+    } catch (error) {
+        console.error('Error creating payment:', error);
+        throw new Error('Database error');
+    }
 }
 
-function getPaymentById(id) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT payment_date, amount, payment_method FROM payments WHERE id = ?', [id], (error, results) => {
-            if (error) {
-                return reject(new Error('Database error'));
-            }
-            if (results.length === 0) {
-                return resolve(null);
-            }
-            resolve(results[0]);
-        });
-    });
+async function getPaymentById(id) {
+    try {
+        const [results] = await pool.query(
+            'SELECT payment_date, amount, payment_method FROM payments WHERE id_payment = ?', 
+            [id]
+        );
+        
+        if (results.length === 0) {
+            return null;
+        }
+        
+        return results[0];
+    } catch (error) {
+        console.error('Error fetching payment by ID:', error);
+        throw new Error('Database error');
+    }
 }
 
-function updatePayment(id, paymentData) {
-    return new Promise((resolve, reject) => {
-        pool.query('UPDATE payments SET payment_date = ?, amount = ?, payment_method = ? WHERE id = ? RETURNING *',
-            [paymentData.payment_date, paymentData.amount, paymentData.payment_method, id], (error, results) => {
-                if (error) {
-                    return reject(new Error('Database error'));
-                }
-                if (results.length === 0) {
-                    return resolve(null);
-                }
-                resolve(results[0]);
-            });
-    });
+async function updatePayment(id, paymentData) {
+    try {
+        const [result] = await pool.query(
+            'UPDATE payments SET payment_date = ?, amount = ?, payment_method = ? WHERE id_payment = ?',
+            [paymentData.payment_date, paymentData.amount, paymentData.payment_method, id]
+        );
+        
+        if (result.affectedRows === 0) {
+            return null;
+        }
+        
+        // Récupérer le paiement mis à jour
+        const [updatedPayment] = await pool.query('SELECT * FROM payments WHERE id_payment = ?', [id]);
+        return updatedPayment[0];
+    } catch (error) {
+        console.error('Error updating payment:', error);
+        throw new Error('Database error');
+    }
 }
 
-function deletePayment(id) {
-    return new Promise((resolve, reject) => {
-        pool.query('DELETE FROM payments WHERE id = ? RETURNING *', [id], (error, results) => {
-            if (error) {
-                return reject(new Error('Database error'));
-            }
-            if (results.length === 0) {
-                return resolve(null);
-            }
-            resolve(results[0]);
-        });
-    });
+async function deletePayment(id) {
+    try {
+        // Récupérer le paiement avant de le supprimer
+        const [payment] = await pool.query('SELECT * FROM payments WHERE id_payment = ?', [id]);
+        
+        if (payment.length === 0) {
+            return null;
+        }
+        
+        const [result] = await pool.query('DELETE FROM payments WHERE id_payment = ?', [id]);
+        
+        if (result.affectedRows === 0) {
+            return null;
+        }
+        
+        return payment[0];
+    } catch (error) {
+        console.error('Error deleting payment:', error);
+        throw new Error('Database error');
+    }
 }
 
 module.exports = {

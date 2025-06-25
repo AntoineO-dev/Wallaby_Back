@@ -1,29 +1,41 @@
 const pool = require('../config/bdd');
 
-function login(email, password) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT * FROM users WHERE email = ?', [email], (error, results) => {
-            if (error) {
-                return reject(new Error('Database error'));
-            }
-            if (results.length === 0) {
-                return reject(new Error('Invalid email or password'));
-            }
-            resolve(results[0]);
-        });
-    });
+async function login(email, password) {
+    try {
+        const [results] = await pool.query('SELECT * FROM customers WHERE email = ?', [email]);
+        
+        if (results.length === 0) {
+            return null; // Aucun utilisateur trouvé avec cet email
+        }
+        
+        return results[0]; // Retourne les informations de l'utilisateur
+    } catch (error) {
+        console.error('Error during login:', error);
+        throw new Error('Database error');
+    }
 }
 
-
-function register(userData) {
-    return new Promise((resolve, reject) => {
-        pool.query('INSERT INTO users (email, password, last_name, first_name, role) VALUES (?, ?, ?, ?, ?) RETURNING *', [userData.email, userData.password, userData.last_name, userData.first_name, userData.role], (error, results) => {
-            if (error) {
-                return reject(new Error('Database error'));
-            }
-            resolve(results[0]);
-        });
-    });
+async function register(userData) {
+    try {
+        const { email, password, last_name, first_name, role } = userData;
+        
+        const [result] = await pool.query(
+            'INSERT INTO customers (email, password, last_name, first_name, role) VALUES (?, ?, ?, ?, ?)', 
+            [email, password, last_name, first_name, role]
+        );
+        
+        // Récupérer l'utilisateur nouvellement créé
+        const [newUser] = await pool.query('SELECT * FROM customers WHERE id_customer = ?', [result.insertId]);
+        
+        return newUser[0];
+    } catch (error) {
+        console.error('Error during registration:', error);
+        // Si l'erreur est due à un email dupliqué, renvoyez un message plus spécifique
+        if (error.code === 'ER_DUP_ENTRY') {
+            throw new Error('Email already exists');
+        }
+        throw new Error('Database error');
+    }
 }
 
 module.exports = {

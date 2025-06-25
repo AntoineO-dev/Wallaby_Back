@@ -1,114 +1,189 @@
 const pool = require('../config/bdd');
 
-
-function getAllCustomers() {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT * FROM reservations', (error, results) => {
-            if (error) {
-                console.error('Error fetching reservations:', error);
-                return reject(error);
-            }
-            resolve(results);
-        });
-    });
-}
-
-function getCustomersByRegistrationDate(registrationDate) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT first_name, last_name, email, phone FROM customers WHERE registration_date = ?', [registrationDate], (error, results) => {
-            if (error) {
-                console.error('Error fetching customers by registration date:', error);
-                return reject(error);
-            }
-            resolve(results);
-        });
+async function getAllCustomers() {
+    try {
+        const [results] = await pool.query('SELECT * FROM customers');
+        return results;
+    } catch (error) {
+        console.error('Error fetching all customers:', error);
+        throw error;
     }
-    );
 }
 
-function getCustomersByTotalCost(totalCost) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT c.id_customer, c.first_name, c.last_name, c.email SUM(res.total_cost) AS total_spent FROM customers c INNER JOIN reservations res ON c.id_customer = res.id_customer GROUP BY c.id_customer, c.first_name, c.last_name, c.email ORDER BY total_spent DESC', [totalCost], (error, results) => {
-            if (error) {
-                console.error('Error fetching customers by total cost:', error);
-                return reject(error);
-            }
-            resolve(results);
-        });
+async function getCustomerById(customerId) {
+    try {
+        const [results] = await pool.query('SELECT * FROM customers WHERE id_customer = ?', [customerId]);
+        if (results.length === 0) {
+            return null;
+        }
+        return results[0];
+    } catch (error) {
+        console.error('Error fetching customer by ID:', error);
+        throw error;
     }
-    );
 }
 
-function getCustomersByRoomName(roomName) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT c.first_name, c.last_name, c.email, c.phone FROM customers c INNER JOIN reservations r ON c.id_customer = r.id_customer INNER JOIN rooms ro ON r.id_room = ro.id_room WHERE room_name = ?', [roomName], (error, results) => {
-            if (error) {
-                console.error('Error fetching customers by room name:', error);
-                return reject(error);
-            }
-            resolve(results);
-        });
+async function getCustomerByEmail(email) {
+    try {
+        const [results] = await pool.query('SELECT * FROM customers WHERE email = ?', [email]);
+        if (results.length === 0) {
+            return null;
+        }
+        return results[0];
+    } catch (error) {
+        console.error('Error fetching customer by email:', error);
+        throw error;
     }
-    );
 }
 
-function getCustomerById(customerId) {
-    return new Promise((resolve, reject) => {
-        pool.query('SELECT first_name, last_name, email, phone, registration_date FROM customers WHERE id = ?', [customerId], (error, results) => {
-            if (error) {
-                console.error('Error fetching customer by ID:', error);
-                return reject(error);
-            }
-            resolve(results[0]);
-        });
-    });
+async function getCustomerByName(first_name, last_name) {
+    try {
+        const [results] = await pool.query('SELECT * FROM customers WHERE first_name = ? AND last_name = ?', [first_name, last_name]);
+        return results;
+    } catch (error) {
+        console.error('Error fetching customer by name:', error);
+        throw error;
+    }
 }
 
-function createCustomer(customerData) {
-    return new Promise((resolve, reject) => {
-        const { first_name, last_name, email, phone, registration_date } = customerData;
-        pool.query('INSERT INTO customers (first_name, last_name, email, phone, registration_date) VALUES (?, ?, ?, ?, ?)', [first_name, last_name, email, phone, registration_date], (error, results) => {
-            if (error) {
-                console.error('Error creating customer:', error);
-                return reject(error);
-            }
-            resolve(results.insertId);
-        });
-    });
+async function getCustomerReservations(customerId) {
+    try {
+        const [results] = await pool.query(
+            `SELECT r.id_reservation, r.check_in_date, r.check_out_date, r.total_cost, r.reservation_status,
+                    rm.room_name, rm.price_per_night
+             FROM reservations r
+             JOIN rooms rm ON r.id_room = rm.id_room
+             WHERE r.id_customer = ?`, 
+            [customerId]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error fetching customer reservations:', error);
+        throw error;
+    }
 }
 
-function updateCustomer(customerId, customerData) {
-    return new Promise((resolve, reject) => {
-        const { first_name, last_name, email, phone, registration_date } = customerData;
-        pool.query('UPDATE customers SET first_name = ?, last_name = ?, email = ?, phone = ?, registration_date = ? WHERE id_customer = ?', [first_name, last_name, email, phone, registration_date, customerId], (error, results) => {
-            if (error) {
-                console.error('Error updating customer:', error);
-                return reject(error);
-            }
-            resolve(results.affectedRows > 0);
-        });
-    });
+async function createCustomer(customerData) {
+    try {
+        const { email, password, first_name, last_name, phone_number, role } = customerData;
+        const [result] = await pool.query(
+            'INSERT INTO customers (email, password, first_name, last_name, phone_number, role) VALUES (?, ?, ?, ?, ?, ?)',
+            [email, password, first_name, last_name, phone_number, role]
+        );
+        return result.insertId;
+    } catch (error) {
+        console.error('Error creating customer:', error);
+        throw error;
+    }
 }
 
-function deleteCustomer(customerId) {
-    return new Promise((resolve, reject) => {
-        pool.query('DELETE FROM customers WHERE id_customer = ?', [customerId], (error, results) => {
-            if (error) {
-                console.error('Error deleting customer:', error);
-                return reject(error);
-            }
-            resolve(results);
-        });
-    });
+async function updateCustomer(customerId, customerData) {
+    try {
+        const { email, password, first_name, last_name, phone_number, role } = customerData;
+        
+        // Construire dynamiquement la requête en fonction des champs fournis
+        let updateFields = [];
+        let updateValues = [];
+        
+        if (email) {
+            updateFields.push('email = ?');
+            updateValues.push(email);
+        }
+        if (password) {
+            updateFields.push('password = ?');
+            updateValues.push(password);
+        }
+        if (first_name) {
+            updateFields.push('first_name = ?');
+            updateValues.push(first_name);
+        }
+        if (last_name) {
+            updateFields.push('last_name = ?');
+            updateValues.push(last_name);
+        }
+        if (phone_number) {
+            updateFields.push('phone_number = ?');
+            updateValues.push(phone_number);
+        }
+        if (role) {
+            updateFields.push('role = ?');
+            updateValues.push(role);
+        }
+        
+        // Si aucun champ à mettre à jour, retourner false
+        if (updateFields.length === 0) {
+            return false;
+        }
+        
+        // Ajouter l'ID du client aux valeurs pour la clause WHERE
+        updateValues.push(customerId);
+        
+        const [result] = await pool.query(
+            `UPDATE customers SET ${updateFields.join(', ')} WHERE id_customer = ?`,
+            updateValues
+        );
+        
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error('Error updating customer:', error);
+        throw error;
+    }
+}
+
+async function deleteCustomer(customerId) {
+    try {
+        const [result] = await pool.query('DELETE FROM customers WHERE id_customer = ?', [customerId]);
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error('Error deleting customer:', error);
+        throw error;
+    }
+}
+
+async function getCustomersByRole(role) {
+    try {
+        const [results] = await pool.query('SELECT * FROM customers WHERE role = ?', [role]);
+        return results;
+    } catch (error) {
+        console.error('Error fetching customers by role:', error);
+        throw error;
+    }
+}
+
+async function getCustomerCount() {
+    try {
+        const [results] = await pool.query('SELECT COUNT(*) as total FROM customers');
+        return results[0].total;
+    } catch (error) {
+        console.error('Error counting customers:', error);
+        throw error;
+    }
+}
+
+async function searchCustomers(searchTerm) {
+    try {
+        const [results] = await pool.query(
+            `SELECT * FROM customers 
+             WHERE first_name LIKE ? OR last_name LIKE ? OR email LIKE ?`,
+            [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`]
+        );
+        return results;
+    } catch (error) {
+        console.error('Error searching customers:', error);
+        throw error;
+    }
 }
 
 module.exports = {
     getAllCustomers,
     getCustomerById,
-    getCustomersByRegistrationDate,
-    getCustomersByTotalCost,
-    getCustomersByRoomName,
+    getCustomerByEmail,
+    getCustomerByName,
+    getCustomerReservations,
     createCustomer,
     updateCustomer,
-    deleteCustomer
+    deleteCustomer,
+    getCustomersByRole,
+    getCustomerCount,
+    searchCustomers
 };
