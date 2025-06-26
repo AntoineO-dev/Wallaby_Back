@@ -1,9 +1,26 @@
 const roomsService = require('../services/roomsService');
 
+function fixEncoding(obj) {
+    if (typeof obj === 'string') {
+        return obj.replace(/\?/g, "'");
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(fixEncoding);
+    }
+    if (obj && typeof obj === 'object') {
+        const fixed = {};
+        for (let key in obj) {
+            fixed[key] = fixEncoding(obj[key]);
+        }
+        return fixed;
+    }
+    return obj;
+}
+
 async function getAllRooms(req, res) {
     try {
         const rooms = await roomsService.getAllRooms();
-        res.status(200).json(rooms);
+        res.status(200).json(fixEncoding(rooms));
     } catch (error) {
         console.error('Error fetching rooms:', error);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -13,7 +30,7 @@ async function getAllRooms(req, res) {
 async function getAvailableRooms(req, res) {
     try {
         const availableRooms = await roomsService.getAvailableRooms();
-        res.status(200).json(availableRooms);
+        res.status(200).json(fixEncoding(availableRooms));
     } catch (error) {
         console.error('Error fetching available rooms:', error);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -27,7 +44,7 @@ async function getRoomsAbovePrice(req, res) {
             return res.status(400).json({ message: 'Invalid price parameter' });
         }
         const rooms = await roomsService.getRoomsAbovePrice(pricePerNight);
-        res.status(200).json(rooms);
+        res.status(200).json(fixEncoding(rooms));
     } catch (error) {
         console.error('Error fetching rooms above price:', error);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -41,7 +58,7 @@ async function getRoomsBelowPrice(req, res) {
             return res.status(400).json({ message: 'Invalid price parameter' });
         }
         const rooms = await roomsService.getRoomsBelowPrice(pricePerNight);
-        res.status(200).json(rooms);
+        res.status(200).json(fixEncoding(rooms));
     } catch (error) {
         console.error('Error fetching rooms below price:', error);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -53,7 +70,7 @@ async function getRoomByName(req, res) {
         const roomName = req.params.room_name;
         const room = await roomsService.getRoomByName(roomName);
         if (room) {
-            res.status(200).json(room);
+            res.status(200).json(fixEncoding(room));
         } else {
             res.status(404).json({ message: 'Room not found' });
         }
@@ -70,7 +87,7 @@ async function getRoomsByCapacity(req, res) {
             return res.status(400).json({ message: 'Invalid capacity parameter' });
         }
         const rooms = await roomsService.getRoomsByCapacity(capacity);
-        res.status(200).json(rooms);
+        res.status(200).json(fixEncoding(rooms));
     } catch (error) {
         console.error('Error fetching rooms by capacity:', error);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -82,7 +99,7 @@ async function getRoomById(req, res) {
         const roomId = req.params.id;
         const room = await roomsService.getRoomById(roomId);
         if (room) {
-            res.status(200).json(room);
+            res.status(200).json(fixEncoding(room));
         } else {
             res.status(404).json({ message: 'Room not found' });
         }
@@ -96,7 +113,7 @@ async function createRoom(req, res) {
     try {
         const newRoom = req.body;
         const createdRoom = await roomsService.createRoom(newRoom);
-        res.status(201).json(createdRoom);
+        res.status(201).json(fixEncoding(createdRoom));
     } catch (error) {
         console.error('Error creating room:', error);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -109,7 +126,7 @@ async function updateRoom(req, res) {
         const updatedRoomData = req.body;
         const updatedRoom = await roomsService.updateRoom(roomId, updatedRoomData);
         if (updatedRoom) {
-            res.status(200).json(updatedRoom);
+            res.status(200).json(fixEncoding(updatedRoom));
         } else {
             res.status(404).json({ message: 'Room not found' });
         }
@@ -143,7 +160,7 @@ async function getRoomDetails(req, res) {
         }
         
         const roomDetails = await reservationsService.getRoomDetails(roomId);
-        res.status(200).json(roomDetails);
+        res.status(200).json(fixEncoding(roomDetails));
     } catch (error) {
         console.error('Error fetching room details:', error);
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
@@ -161,5 +178,6 @@ module.exports = {
     createRoom,
     updateRoom,
     deleteRoom,
-    getRoomDetails
+    getRoomDetails,
+    fixEncoding
 };

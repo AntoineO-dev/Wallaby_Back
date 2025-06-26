@@ -17,7 +17,12 @@ const servicesRoutes = require('./routes/servicesRoutes');
 
 app.use(express.json());
 app.use(cors()); // Middleware pour autoriser les requêtes CORS
+app.use((req, res, next) => {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    next();
+});
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 
 app.use('/api/reservations', reservationsRoutes);
 app.use('/api/auth', authRoutes);
