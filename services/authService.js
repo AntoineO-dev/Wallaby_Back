@@ -16,13 +16,13 @@ async function register(userData) {
         // Hacher le mot de passe
         const hashedPassword = await bcrypt.hash(password, 10);
         
-        // Insérer le nouvel utilisateur
+        // ✅ INSERTION SIMPLE (sans colonnes de confirmation)
         const [result] = await pool.query(
             'INSERT INTO customers (email, password, first_name, last_name) VALUES (?, ?, ?, ?)', 
             [email, hashedPassword, first_name, last_name]
         );
         
-        // Récupérer l'utilisateur créé
+        // ✅ RÉCUPÉRATION SIMPLE
         const [newUser] = await pool.query(
             'SELECT id_customer, email, first_name, last_name FROM customers WHERE id_customer = ?', 
             [result.insertId]
@@ -45,7 +45,8 @@ async function login(loginData) {
             return null;
         }
         
-        return users[0];
+        const user = users[0];
+        return user;
     } catch (error) {
         console.error('Erreur service login:', error);
         throw error;
