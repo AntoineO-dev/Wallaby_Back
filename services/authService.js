@@ -1,44 +1,58 @@
 const pool = require('../config/bdd');
-
-async function login(email, password) {
-    try {
-        const [results] = await pool.query('SELECT * FROM customers WHERE email = ?', [email]);
-        
-        if (results.length === 0) {
-            return null; // Aucun utilisateur trouvé avec cet email
-        }
-        
-        return results[0]; // Retourne les informations de l'utilisateur
-    } catch (error) {
-        console.error('Error during login:', error);
-        throw new Error('Database error');
-    }
-}
+const bcrypt = require('bcryptjs');
 
 async function register(userData) {
     try {
-        const { email, password, last_name, first_name, role } = userData;
+        console.log('userData dans service:', userData);
         
+        const { email, password, first_name, last_name } = userData;
+        
+        // Vérifier si l'email existe déjà
+        const [existingUser] = await pool.query('SELECT email FROM customers WHERE email = ?', [email]);
+        if (existingUser.length > 0) {
+            throw new Error('Un compte avec cet email existe déjà');
+        }
+        
+        // Hacher le mot de passe
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // Insérer le nouvel utilisateur
         const [result] = await pool.query(
-            'INSERT INTO customers (email, password, last_name, first_name, role) VALUES (?, ?, ?, ?, ?)', 
-            [email, password, last_name, first_name, role]
+            'INSERT INTO customers (email, password, first_name, last_name) VALUES (?, ?, ?, ?)', 
+            [email, hashedPassword, first_name, last_name]
         );
         
-        // Récupérer l'utilisateur nouvellement créé
-        const [newUser] = await pool.query('SELECT * FROM customers WHERE id_customer = ?', [result.insertId]);
+        // Récupérer l'utilisateur créé
+        const [newUser] = await pool.query(
+            'SELECT id_customer, email, first_name, last_name FROM customers WHERE id_customer = ?', 
+            [result.insertId]
+        );
         
         return newUser[0];
     } catch (error) {
-        console.error('Error during registration:', error);
-        // Si l'erreur est due à un email dupliqué, renvoyez un message plus spécifique
-        if (error.code === 'ER_DUP_ENTRY') {
-            throw new Error('Email already exists');
+        console.error('Erreur service register:', error);
+        throw error;
+    }
+}
+
+async function login(loginData) {
+    try {
+        const { email, password } = loginData;
+        
+        const [users] = await pool.query('SELECT * FROM customers WHERE email = ?', [email]);
+        
+        if (users.length === 0) {
+            return null;
         }
-        throw new Error('Database error');
+        
+        return users[0];
+    } catch (error) {
+        console.error('Erreur service login:', error);
+        throw error;
     }
 }
 
 module.exports = {
-    login,
-    register
+    register,
+    login
 };
